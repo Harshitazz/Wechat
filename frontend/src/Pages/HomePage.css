@@ -1,0 +1,24 @@
+.form-header{
+    background-image: linear-gradient(to right, #3284b8, #0a9898);
+        display: flex;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    justify-content: center;
+    margin: 20px 0px 15px 0px ;
+    border-radius: 10px;
+}
+
+.form-header-heading{
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: aliceblue;
+
+}
+.form-content{
+    background-image: linear-gradient(to right, #3284b8, #0a9898);
+     width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    color: aliceblue;
+}

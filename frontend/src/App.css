@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,300;1,300&display=swap');
+
+.App{
+    background-color: antiquewhite;
+    height: '100%';
+    min-height: 100vh;
+    display: flex;
+    background-image: url('./background.png');
+}
