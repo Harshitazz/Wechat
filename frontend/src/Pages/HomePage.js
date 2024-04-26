@@ -1,12 +1,20 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Login from "../components/authentication/Login";
 import Signup from "../components/authentication/Signup";
 import { Container } from "@chakra-ui/react";
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 
 import "./HomePage.css";
+import { useNavigate } from "react-router-dom";
 function HomePage() {
-  
+  const navigate=useNavigate();
+
+    useEffect(()=>{
+        const userInfo=JSON.parse(localStorage.getItem("userInfo"))
+        if(userInfo){
+            navigate('/chats');
+        }
+    },[navigate])
   return (
     <Container maxW="xl" centerContent>
       <div className="form-header">
