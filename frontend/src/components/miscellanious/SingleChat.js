@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { ArrowBackIcon, PhoneIcon, ViewIcon } from "@chakra-ui/icons";
 import {
+  generateRandomString,
   getSender,
   getSenderFull,
 } from "../../context/ChatLogic/Configuration";
@@ -167,23 +168,14 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
   })
 
   //join room 
-  let value;
-
+  let randomRoomId;
   const handleJoinRoom = useCallback(() => {
-    let value;
     
-    if (selectedChat) {
-      if (selectedChat.isGroupChat) {
-        value = selectedChat.chatName ? selectedChat.chatName.toUpperCase() : 'UNKNOWN_GROUP';
-      } else {
-        value = getSender(user, selectedChat.users) || 'UNKNOWN_USER';
-      }
-      navigate(`/room/${value}`);
-    } else {
-      console.warn('selectedChat is not defined');
-      // Handle the case when selectedChat is not defined, if necessary
-    }
-  }, [navigate, selectedChat, user]);
+    randomRoomId = generateRandomString(10)
+    navigate(`/room/${randomRoomId}`)
+
+  }
+    , [navigate,randomRoomId]);
 
   return (
     <>
