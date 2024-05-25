@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ChatState } from "../../context/ChatProvider";
 import {
   Box,
@@ -9,7 +9,7 @@ import {
   Text,
   useToast,
 } from "@chakra-ui/react";
-import { ArrowBackIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, PhoneIcon, ViewIcon } from "@chakra-ui/icons";
 import {
   getSender,
   getSenderFull,
@@ -22,6 +22,7 @@ import ScrollableChat from "./ScrollableChat";
 import Lottie from 'react-lottie'
 import animationData from "../animation/typing.json"
 import io from 'socket.io-client'
+import { useNavigate } from "react-router-dom";
 const ENDPOINT="http://localhost:5000"; //cors to backend
 var socket, selectedChatCompare;
 
@@ -41,7 +42,7 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
       preserveAspectRatio: "xMidYMid slice",
     },
   };
-
+  const navigate=useNavigate();
   const [socketConnected ,setSocketConnected]= useState();
 
   useEffect(()=>{
@@ -52,6 +53,8 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
     socket.on('stop typing',()=>setIsTyping(false))
 
   },[])
+
+
 
   const fetchMessages = async () => {
     if (!selectedChat) return;
@@ -141,6 +144,8 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
     }, timerLength);
   };
 
+
+
   useEffect(()=>{
     fetchMessages();
     selectedChatCompare=selectedChat;
@@ -161,7 +166,24 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
     })
   })
 
+  //join room 
+  let value;
 
+  const handleJoinRoom = useCallback(() => {
+    let value;
+    
+    if (selectedChat) {
+      if (selectedChat.isGroupChat) {
+        value = selectedChat.chatName ? selectedChat.chatName.toUpperCase() : 'UNKNOWN_GROUP';
+      } else {
+        value = getSender(user, selectedChat.users) || 'UNKNOWN_USER';
+      }
+      navigate(`/room/${value}`);
+    } else {
+      console.warn('selectedChat is not defined');
+      // Handle the case when selectedChat is not defined, if necessary
+    }
+  }, [navigate, selectedChat, user]);
 
   return (
     <>
@@ -181,21 +203,29 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
               icon={<ArrowBackIcon />}
               onClick={() => setSelectedChat("")}
             />
-
+            
             {!selectedChat.isGroupChat ? (
               <>
                 {getSender(user, selectedChat.users)}
+                <Text display='flex' gap='1rem'>
                 <ProfileModal
                   user={getSenderFull(user, selectedChat.users)}
                 ></ProfileModal>
+             <IconButton display={{base: 'flex'}} icon={<PhoneIcon/>}  onClick={handleJoinRoom}/>
+
+                </Text>
               </>
             ) : (
               <>
                 {selectedChat.chatName.toUpperCase()}
+                <Text display='flex' gap='1rem'>
                 <UpdateGroupChatModal
                   fetchAgain={fetchAgain}
                   setFetchAgain={setFetchAgain}
+                  
                 />
+                <IconButton display={{base: 'flex'}} icon={<PhoneIcon/>}  onClick={handleJoinRoom}/>
+                </Text>
               </>
             )}
           </Text>
