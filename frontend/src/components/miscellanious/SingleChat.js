@@ -24,7 +24,7 @@ import Lottie from 'react-lottie'
 import animationData from "../animation/typing.json"
 import io from 'socket.io-client'
 import { useNavigate } from "react-router-dom";
-const ENDPOINT="http://localhost:5000"; //cors to backend
+const ENDPOINT="https://we-chat-9doc.onrender.com/"; //cors to backend
 var socket, selectedChatCompare;
 
 function SingleChat({ fetchAgain, setFetchAgain }) {

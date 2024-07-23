@@ -46,9 +46,9 @@ const server=app.listen(5000,console.log("server started"));
 const io= require('socket.io')(server,{
     pingTimeout:6000,
     cors:{
-      origin: "*", // Allow all origins
-      methods: ["GET", "POST"]
-  },
+        origin: "*", // Allow all origins
+        methods: ["GET", "POST"]
+    },
     
 })
 
