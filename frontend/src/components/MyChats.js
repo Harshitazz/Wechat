@@ -1,5 +1,5 @@
 import { Box, Button, Stack, Text, useToast } from "@chakra-ui/react";
-import axios from "axios";
+import axiosInstance from "../config/axiosConfig";
 import React, { useEffect, useState } from "react";
 import { ChatState } from "../context/ChatProvider";
 import { AddIcon } from "@chakra-ui/icons";
@@ -13,15 +13,8 @@ function MyChats({fetchAgain}) {
   const toast = useToast();
   const fetchChats = async () => {
     try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${user.token}`, //protected api
-        },
-      };
-      const { data } = await axios.get("api/chat", config);
+      const { data } = await axiosInstance.get("/api/chat");
       setChats(data);
-      // setChats([data,...chats]);
-      // console.log(chats);
     } catch (error) {
       toast({
         title: "Error Occured",
@@ -86,12 +79,11 @@ function MyChats({fetchAgain}) {
           <Stack  
           overflowY="scroll"
       css={{
-        // Hide the scrollbar
         '&::-webkit-scrollbar': {
           display: 'none',
         },
-        '-ms-overflow-style': 'none',  /* IE and Edge */
-        'scrollbarWidth': 'none',  /* Firefox */
+        '-ms-overflow-style': 'none',  
+        'scrollbarWidth': 'none',  
       }}
           >
             {chats.map((chat) => (

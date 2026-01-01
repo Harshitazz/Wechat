@@ -1,0 +1,31 @@
+{
+  "name": "chat-service",
+  "version": "1.0.0",
+  "main": "app.js",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "scripts": {
+    "start": "node app.js",
+    "server": "nodemon app.js",
+    "build": "npm install --legacy-peer-deps && npm install --legacy-peer-deps --prefix frontend && npm run build --prefix frontend"
+  },
+ 
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.5.2",
+    "axios": "^1.13.2",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.8.0",
+    "colors": "^1.4.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.2.4",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

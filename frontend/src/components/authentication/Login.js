@@ -9,7 +9,7 @@ import {
   InputRightElement,
   VStack,
 } from "@chakra-ui/react";
-import axios from "axios";
+import axiosInstance from "../../config/axiosConfig";
 import { useToast } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 function Login() {
@@ -52,16 +52,9 @@ function Login() {
     }
 
     try {
-      const config = {
-        headers: {
-          "Content-type": "application/json",
-        },
-      };
-
-      const { data } = await axios.post(
+      const { data } = await axiosInstance.post(
         "/api/user/login",
-        { email, password },
-        config
+        { email, password }
       );
 
       toast({

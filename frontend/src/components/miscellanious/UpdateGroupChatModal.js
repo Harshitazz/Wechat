@@ -20,7 +20,7 @@ import {
 import { ViewIcon } from "@chakra-ui/icons";
 import { ChatState } from "../../context/ChatProvider";
 import UserItemBadge from "./UserItemBadge";
-import axios from "axios";
+import axiosInstance from "../../config/axiosConfig";
 import UserListItem from "./UserListItem";
 
 function UpdateGroupChatModal({ fetchAgain, setFetchAgain }) {
@@ -39,18 +39,12 @@ function UpdateGroupChatModal({ fetchAgain, setFetchAgain }) {
     if (!groupChatName) return;
     try {
       setRenameLoading(true);
-      const config = {
-        headers: {
-          Authorization: `Bearer ${user.token}`, //protected api
-        },
-      };
-      const { data } = await axios.put(
-        "api/chat/rename",
+      const { data } = await axiosInstance.put(
+        "/api/chat/rename",
         {
           chatId: selectedChat._id,
           chatName: groupChatName,
-        },
-        config
+        }
       );
       setSelectedChat(data);
       setFetchAgain(!fetchAgain);
@@ -76,14 +70,7 @@ function UpdateGroupChatModal({ fetchAgain, setFetchAgain }) {
 
     try {
       setLoading(true);
-      const config = {
-        headers: {
-          Authorization: `Bearer ${user.token}`, //protected api
-        },
-      };
-      const { data } = await axios.get(`api/user?search=${search}`, config);
-      console.log("data");
-      console.log(data);
+      const { data } = await axiosInstance.get(`/api/user?search=${search}`);
       setSearchResult(data);
       setLoading(false);
     } catch (error) {
@@ -119,15 +106,10 @@ function UpdateGroupChatModal({ fetchAgain, setFetchAgain }) {
     }
     try {
         setLoading(true);
-        const config = {
-          headers: {
-            Authorization: `Bearer ${user.token}`, //protected api
-          },
-        };
-        const { data } = await axios.put(`api/chat/add`,{
+        const { data } = await axiosInstance.put(`/api/chat/add`,{
             chatId:selectedChat._id,
             userId:user1._id
-        }, config);
+        });
         setSelectedChat(data)
         setFetchAgain(!fetchAgain)
         setLoading(false)
@@ -156,15 +138,10 @@ function UpdateGroupChatModal({ fetchAgain, setFetchAgain }) {
         }
         try {
             setLoading(true);
-            const config = {
-              headers: {
-                Authorization: `Bearer ${user.token}`, //protected api
-              },
-            };
-            const { data } = await axios.put(`api/chat/remove`,{
+            const { data } = await axiosInstance.put(`/api/chat/remove`,{
                 chatId:selectedChat._id,
                 userId:user1._id
-            }, config);
+            });
             user1._id===user._id? setSelectedChat():setSelectedChat(data)
             setFetchAgain(!fetchAgain)
             setLoading(false)

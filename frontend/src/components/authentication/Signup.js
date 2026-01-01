@@ -1,7 +1,7 @@
 import React, {useState, useRef} from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../imageElement.css'
-import axios from 'axios';
+import axiosInstance from '../../config/axiosConfig';
 import { Button, FormControl,FormErrorMessage,useToast,  Input, InputGroup, InputRightElement, VStack } from '@chakra-ui/react'
 function Signup() {
       const[show,setShow]=useState(false);
@@ -32,7 +32,6 @@ function Signup() {
         });
         return;
       }
-      console.log(pics);
       if (pics.type === "image/jpeg" || pics.type === "image/png") {
         const data = new FormData();
         data.append("file", pics);
@@ -46,7 +45,6 @@ function Signup() {
           .then((data) => {
             setPic(data.url.toString());
             setPreviewUrl(data.url.toString());
-            console.log(data.url.toString());
             setPicLoading(false);
           })
           .catch((err) => {
@@ -101,24 +99,16 @@ function Signup() {
         });
         return;
       }
-      console.log(name, email, password, pic);
       try {
-        const config={
-          headers: {
-            "Content-type": "application/json",
-          },
-        }
-        const { data } = await axios.post(
+        const { data } = await axiosInstance.post(
           "/api/user",
           {
             name,
             email,
             password,
             pic,
-          },
-          config
+          }
         );
-        console.log(data);
         toast({
           title: "Registration successful",
           status: "success",
@@ -128,10 +118,12 @@ function Signup() {
         });
         localStorage.setItem("userInfo", JSON.stringify(data));
         navigate('/chats');
-            } catch (error) {
+      } catch (error) {
+        console.error("Signup error:", error);
+        const errorMessage = error.response?.data?.message || error.message || "Registration failed";
         toast({
-          title: "Error Occured!",
-          description: error.response.data.message,
+          title: "Error Occurred!",
+          description: errorMessage,
           status: "error",
           duration: 5000,
           isClosable: true,

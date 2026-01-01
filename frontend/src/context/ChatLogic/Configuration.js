@@ -1,5 +1,4 @@
 export const isSameSenderMargin = (messages, m, i, userId) => {
-  // console.log(i === messages.length - 1);
 
   if (
     i < messages.length - 1 &&
@@ -47,8 +46,7 @@ export const getSenderFull = (loggedUser, users) => {
 };
 
 export const generateRoomId = (chat) => {
-  // Generate a room ID based on the chat ID or some unique attribute of the chat
-  return chat._id || generateRandomString(10); // Fallback to random string if no chat ID
+  return chat._id || generateRandomString(10); 
 };
 
 export const generateRandomString = (length) => {
