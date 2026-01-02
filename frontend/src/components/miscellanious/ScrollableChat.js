@@ -10,9 +10,34 @@ import { ChatState } from "../../context/ChatProvider";
 import { Avatar, Tooltip } from "@chakra-ui/react";
 function ScrollableChat({ messages }) {
   const { user } = ChatState();
+  const linkify = (text) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  return text.split(urlRegex).map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: "#3182ce",
+            fontWeight: "600",
+            textDecoration: "underline",
+            cursor: "pointer",
+          }}
+        >
+          Join Video Call
+        </a>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+};
+
   return (
-    <ScrollableFeed>
-      {messages &&
+<ScrollableFeed style={{ width: "100%" }}>{
         messages.map((m, i) => (
           <div style={{ display: "flex" }} key={m._id}>
              {(isSameSender(messages, m, i, user._id) ||
@@ -39,7 +64,7 @@ function ScrollableChat({ messages }) {
               marginTop:isSameUser(messages,m,i)?3:10
             }}
               >
-                {m.content}
+                {linkify(m.content)}
               </span>
           </div>
         ))}

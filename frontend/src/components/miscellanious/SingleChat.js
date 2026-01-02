@@ -18,14 +18,14 @@ import {
 import ProfileModal from "./ProfileModal";
 import UpdateGroupChatModal from "./UpdateGroupChatModal";
 import axiosInstance from "../../config/axiosConfig";
-import '../css/styles.css'
+import "../css/styles.css";
 import ScrollableChat from "./ScrollableChat";
-import Lottie from 'react-lottie'
-import animationData from "../animation/typing.json"
-import io from 'socket.io-client'
+import Lottie from "react-lottie";
+import animationData from "../animation/typing.json";
+import io from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 
-const ENDPOINT = process.env.REACT_APP_WEBSOCKET_URL;
+const ENDPOINT = process.env.REACT_APP_WEBSOCKET_URL || "http://localhost:5004";
 var socket, selectedChatCompare;
 
 function SingleChat({ fetchAgain, setFetchAgain }) {
@@ -34,10 +34,11 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
   const [newMessage, setNewMessage] = useState("");
   const [socketConnected, setSocketConnected] = useState(false);
   const toast = useToast();
-  const { user, selectedChat, setSelectedChat, notification, setNotification } = ChatState();
+  const { user, selectedChat, setSelectedChat, notification, setNotification } =
+    ChatState();
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  
+
   const defaultOptions = {
     loop: true,
     autoplay: true,
@@ -46,7 +47,7 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
       preserveAspectRatio: "xMidYMid slice",
     },
   };
-  
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,69 +55,55 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
 
     socket = io(ENDPOINT, {
       auth: { token: user.token },
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
-      timeout: 10000,
+      transports: ["websocket"],
     });
 
     socket.on("connect", () => {
       setSocketConnected(true);
-      socket.emit("setup", user._id);
+      console.log("🟢 Socket connected");
     });
 
-    socket.on("connected", () => {
-      console.log(" Setup complete");
-    });
+    socket.on("typing", () => setIsTyping(true));
+    socket.on("stop typing", () => setIsTyping(false));
 
-    socket.on("typing", () => {
-      setIsTyping(true);
-    });
+    socket.on("message received", (msg) => {
+      console.log("📩 WS message:", msg);
 
-    socket.on("stop typing", () => {
-      setIsTyping(false);
-    });
+      const isCallInvite =
+        typeof msg.content === "string" &&
+        msg.content.includes("Video call started");
 
-    socket.on("message received", (newMessageReceived) => {
-      console.log(" Message received:", newMessageReceived);
-      
-      if (!selectedChatCompare || selectedChatCompare._id !== newMessageReceived.chat._id) {
-        // Message for different chat - add to notifications
-        if (!notification.find(n => n._id === newMessageReceived._id)) {
-          setNotification([newMessageReceived, ...notification]);
-          setFetchAgain(!fetchAgain);
-        }
-      } else {
-        setMessages((prev) => {
-          if (prev.find(m => m._id === newMessageReceived._id)) {
-            return prev;
-          }
-          return [...prev, newMessageReceived];
-        });
+      // 🔥 ALWAYS render call invites via WebSocket
+      if (isCallInvite) {
+        setMessages((prev) =>
+          prev.find((m) => m._id === msg._id) ? prev : [...prev, msg]
+        );
+        return;
       }
-    });
 
-    socket.on("connect_error", (error) => {
-      console.error("❌ Socket connection error:", error.message);
-      setSocketConnected(false);
+      if (selectedChatCompare && selectedChatCompare._id === msg.chat._id) {
+        setMessages((prev) =>
+          prev.find((m) => m._id === msg._id) ? prev : [...prev, msg]
+        );
+      } else {
+        setNotification((prev) =>
+          prev.find((n) => n._id === msg._id) ? prev : [msg, ...prev]
+        );
+        setFetchAgain((prev) => !prev);
+      }
     });
 
     socket.on("disconnect", () => {
       setSocketConnected(false);
+      console.log("🔴 Socket disconnected");
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("❌ Socket error:", err.message);
     });
 
     return () => {
-      if (socket) {
-        socket.off("connect");
-        socket.off("connected");
-        socket.off("typing");
-        socket.off("stop typing");
-        socket.off("message received");
-        socket.off("connect_error");
-        socket.off("disconnect");
-        socket.disconnect();
-      }
+      socket.disconnect();
     };
   }, [user?.token]);
 
@@ -125,7 +112,9 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
 
     try {
       setLoading(true);
-      const { data } = await axiosInstance.get(`/api/message/${selectedChat._id}`);
+      const { data } = await axiosInstance.get(
+        `/api/message/${selectedChat._id}`
+      );
       setMessages(data);
       setLoading(false);
 
@@ -147,43 +136,34 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
 
   const sendMessage = async (event) => {
     if (event.key === "Enter" && newMessage.trim()) {
-      if (socket && socketConnected) {
-        socket.emit('stop typing', selectedChat._id);
+      if (socketConnected) {
+        socket.emit("stop typing", selectedChat._id);
       }
-      
-      const messageToSend = newMessage;
+
+      const content = newMessage;
       setNewMessage("");
-      
+
       try {
-        const { data } = await axiosInstance.post("/api/message", {
-          content: messageToSend,
+        await axiosInstance.post("/api/message", {
+          content,
           chatId: selectedChat._id,
         });
-
-        setMessages((prev) => [...prev, data]);
-        
-        if (socket && socketConnected) {
-          socket.emit("new message", data);
-        }
-        
+        // ❌ DO NOT update messages here
       } catch (error) {
-        console.error("Error sending message:", error);
         toast({
           title: "Error sending message",
-          description: error.response?.data?.message || "Failed to send message",
           status: "error",
           duration: 5000,
           isClosable: true,
-          position: "bottom-left",
         });
-        setNewMessage(messageToSend); 
+        setNewMessage(content);
       }
     }
   };
 
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
-    
+
     if (!socket || !socketConnected || !selectedChat) return;
 
     if (!typing) {
@@ -219,10 +199,29 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
     }
   }, [selectedChat, socketConnected]);
 
-  const handleJoinRoom = useCallback(() => {
-    const randomRoomId = generateRandomString(10);
-    navigate(`/room/${randomRoomId}`);
-  }, [navigate]);
+  const handleJoinRoom = async () => {
+    if (!selectedChat?._id) return;
+
+    const roomId = generateRandomString(12);
+    const roomLink = `${window.location.origin}/room/${roomId}`;
+    const content = `📞 Video call started\n${roomLink}`;
+
+    try {
+      await axiosInstance.post("/api/message", {
+        content,
+        chatId: selectedChat._id,
+      });
+
+      navigate(`/room/${roomId}`);
+    } catch (error) {
+      toast({
+        title: "Failed to start call",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
 
   return (
     <>
@@ -241,44 +240,51 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
               icon={<ArrowBackIcon />}
               onClick={() => setSelectedChat("")}
             />
-            
+
             {!selectedChat.isGroupChat ? (
               <>
                 <Box flex="1">{getSender(user, selectedChat.users)}</Box>
-                <Box display='flex' gap='1rem'>
-                  <ProfileModal user={getSenderFull(user, selectedChat.users)} />
-                  <IconButton icon={<PhoneIcon/>} onClick={handleJoinRoom}/>
+                <Box display="flex" gap="1rem">
+                  <ProfileModal
+                    user={getSenderFull(user, selectedChat.users)}
+                  />
+                  <IconButton icon={<PhoneIcon />} onClick={handleJoinRoom} />
                 </Box>
               </>
             ) : (
               <>
                 <Box flex="1">{selectedChat.chatName.toUpperCase()}</Box>
-                <Box display='flex' gap='1rem'>
+                <Box display="flex" gap="1rem">
                   <UpdateGroupChatModal
                     fetchAgain={fetchAgain}
                     setFetchAgain={setFetchAgain}
                   />
-                  <IconButton icon={<PhoneIcon/>} onClick={handleJoinRoom}/>
+                  <IconButton icon={<PhoneIcon />} onClick={handleJoinRoom} />
                 </Box>
               </>
             )}
           </Box>
-          
+
           <Box
             display="flex"
             w="100%"
             h="100%"
             backgroundColor="#E8E8E8"
-            overflowY="hidden"
+            overflow="hidden"
             flexDir="column"
-            justifyContent="flex-end"
           >
             {loading ? (
               <Spinner alignSelf="center" margin="auto" size="xl" />
             ) : (
-              <div className="message">
-                <ScrollableChat messages={messages}/>
-              </div>
+              <Box
+                flex="1"
+                overflowY="auto"
+                display="flex"
+                flexDirection="column"
+                justifyContent="flex-end"
+              >
+                <ScrollableChat messages={messages} />
+              </Box>
             )}
 
             <FormControl onKeyDown={sendMessage} isRequired mt={3}>
