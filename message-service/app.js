@@ -11,8 +11,11 @@ connectDB();
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use("/", (req, res) => {
+  res.send("Message Service is running");
+})
 
-app.use("/", protect, messageRoutes);
+app.use("/api/message", protect, messageRoutes);
 
 app.listen(5003, () =>
   console.log(" Message Service running on 5003")
