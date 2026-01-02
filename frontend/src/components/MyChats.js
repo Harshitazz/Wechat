@@ -7,17 +7,24 @@ import ChatLoading from "./ChatLoading";
 import { getSender } from "../context/ChatLogic/Configuration";
 import GroupChatModal from "./miscellanious/GroupChatModal";
 
-function MyChats({fetchAgain}) {
+function MyChats({ fetchAgain }) {
   const [loggeduser, setLoggedUser] = useState();
   const { user, selectedChat, setSelectedChat, chats, setChats } = ChatState();
   const toast = useToast();
   const fetchChats = async () => {
     try {
       const { data } = await axiosInstance.get("/api/chat");
+
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid chat data");
+      }
+
       setChats(data);
     } catch (error) {
+      setChats([]); // prevent map crash
       toast({
-        title: "Error Occured",
+        title: "Failed to load chats",
+        description: error.response?.data?.message || error.message,
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -25,13 +32,11 @@ function MyChats({fetchAgain}) {
       });
     }
   };
-  
+
   useEffect(() => {
     setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));
     fetchChats();
-  },[fetchAgain]);
-
-
+  }, [fetchAgain]);
 
   return (
     <Box
@@ -40,8 +45,7 @@ function MyChats({fetchAgain}) {
       p={3}
       bg="white"
       w={{ base: "100%", md: "30%" }}
-      borderRadius='lg'
-
+      borderRadius="lg"
     >
       <Box
         p={3}
@@ -54,15 +58,13 @@ function MyChats({fetchAgain}) {
       >
         My Chats
         <GroupChatModal>
-          
-        
-        <Button
-          display="flex"
-          fontSize={{ base: "15px", md: "10px" }}
-          rightIcon={<AddIcon />}
-        >
-          New Group Chat
-        </Button>
+          <Button
+            display="flex"
+            fontSize={{ base: "15px", md: "10px" }}
+            rightIcon={<AddIcon />}
+          >
+            New Group Chat
+          </Button>
         </GroupChatModal>
       </Box>
       <Box
@@ -73,29 +75,27 @@ function MyChats({fetchAgain}) {
         w="100%"
         h="100%"
         p={3}
-        
       >
-        {chats ? (
-          <Stack  
-          overflowY="scroll"
-      css={{
-        '&::-webkit-scrollbar': {
-          display: 'none',
-        },
-        '-ms-overflow-style': 'none',  
-        'scrollbarWidth': 'none',  
-      }}
+        {Array.isArray(chats) ? (
+          <Stack
+            overflowY="scroll"
+            css={{
+              "&::-webkit-scrollbar": {
+                display: "none",
+              },
+              "-ms-overflow-style": "none",
+              scrollbarWidth: "none",
+            }}
           >
             {chats.map((chat) => (
               <Box
-              
                 onClick={() => setSelectedChat(chat)}
                 cursor="pointer"
                 px={3}
                 py={2}
                 borderRadius="lg"
                 key={chat._id}
-                bgImage='linear-gradient(to right, #3284b8, #0a9898)'
+                bgImage="linear-gradient(to right, #3284b8, #0a9898)"
               >
                 <Text>
                   {!chat.isGroupChat
