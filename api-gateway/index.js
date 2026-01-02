@@ -32,6 +32,14 @@ app.use("/api/user",
   createProxyMiddleware({
     target:process.env.USER_SERVICE_URL || "http://localhost:5001",
     changeOrigin: true,
+    onProxyReq: (proxyReq, req) => {
+      if (req.headers.authorization) {
+        proxyReq.setHeader(
+          "Authorization",
+          req.headers.authorization
+        );
+      }
+    },
   })
 );
 
@@ -40,6 +48,14 @@ app.use("/api/chat", auth,
   createProxyMiddleware({
     target: process.env.CHAT_SERVICE_URL || "http://localhost:5002",
     changeOrigin: true,
+    onProxyReq: (proxyReq, req) => {
+      if (req.headers.authorization) {
+        proxyReq.setHeader(
+          "Authorization",
+          req.headers.authorization
+        );
+      }
+    },
   })
 );
 
@@ -48,6 +64,14 @@ app.use("/api/message", auth,
   createProxyMiddleware({
     target: process.env.MESSAGE_SERVICE_URL || "http://localhost:5003",
     changeOrigin: true,
+    onProxyReq: (proxyReq, req) => {
+      if (req.headers.authorization) {
+        proxyReq.setHeader(
+          "Authorization",
+          req.headers.authorization
+        );
+      }
+    },
   })
 );
 
