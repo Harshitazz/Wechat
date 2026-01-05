@@ -34,8 +34,14 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
   const [newMessage, setNewMessage] = useState("");
   const [socketConnected, setSocketConnected] = useState(false);
   const toast = useToast();
-  const { user, selectedChat, setSelectedChat, notification, setNotification } =
-    ChatState();
+  const { 
+    user, 
+    selectedChat, 
+    setSelectedChat, 
+    notification, 
+    setNotification,
+    resetUnreadCount
+  } = ChatState();
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -86,9 +92,7 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
           prev.find((m) => m._id === msg._id) ? prev : [...prev, msg]
         );
       } else {
-        setNotification((prev) =>
-          prev.find((n) => n._id === msg._id) ? prev : [msg, ...prev]
-        );
+        // Notification and unread count are now handled globally in ChatProvider
         setFetchAgain((prev) => !prev);
       }
     });
@@ -190,6 +194,8 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
     if (selectedChat) {
       fetchMessages();
       selectedChatCompare = selectedChat;
+      // Reset unread count when chat is selected
+      resetUnreadCount(selectedChat._id);
     }
   }, [selectedChat]);
 

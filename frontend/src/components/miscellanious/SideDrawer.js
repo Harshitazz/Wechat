@@ -45,6 +45,7 @@ function SideDrawer() {
     setChats,
     notification,
     setNotification,
+    resetUnreadCount,
   } = ChatState();
   const toast = useToast();
 
@@ -158,6 +159,7 @@ function SideDrawer() {
                   key={notif._id}
                   onClick={() => {
                     setSelectedChat(notif.chat);
+                    resetUnreadCount(notif.chat._id);
                     setNotification(notification.filter((n) => n !== notif));
                   }}
                 >

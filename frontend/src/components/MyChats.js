@@ -1,4 +1,4 @@
-import { Box, Button, Stack, Text, useToast } from "@chakra-ui/react";
+import { Box, Button, Stack, Text, useToast, Badge } from "@chakra-ui/react";
 import axiosInstance from "../config/axiosConfig";
 import React, { useEffect, useState } from "react";
 import { ChatState } from "../context/ChatProvider";
@@ -9,7 +9,7 @@ import GroupChatModal from "./miscellanious/GroupChatModal";
 
 function MyChats({ fetchAgain }) {
   const [loggeduser, setLoggedUser] = useState();
-  const { user, selectedChat, setSelectedChat, chats, setChats } = ChatState();
+  const { user, selectedChat, setSelectedChat, chats, setChats, unreadCounts, resetUnreadCount } = ChatState();
   const toast = useToast();
   const fetchChats = async () => {
     try {
@@ -87,23 +87,48 @@ function MyChats({ fetchAgain }) {
               scrollbarWidth: "none",
             }}
           >
-            {chats.map((chat) => (
-              <Box
-                onClick={() => setSelectedChat(chat)}
-                cursor="pointer"
-                px={3}
-                py={2}
-                borderRadius="lg"
-                key={chat._id}
-                bgImage="linear-gradient(to right, #3284b8, #0a9898)"
-              >
-                <Text>
-                  {!chat.isGroupChat
-                    ? getSender(loggeduser, chat.users)
-                    : chat.chatName}
-                </Text>
-              </Box>
-            ))}
+            {chats.map((chat) => {
+              const unreadCount = unreadCounts[chat._id] || 0;
+              return (
+                <Box
+                  onClick={() => {
+                    setSelectedChat(chat);
+                    resetUnreadCount(chat._id);
+                  }}
+                  cursor="pointer"
+                  px={3}
+                  py={2}
+                  borderRadius="lg"
+                  key={chat._id}
+                  bgImage="linear-gradient(to right, #3284b8, #0a9898)"
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  position="relative"
+                >
+                  <Text flex="1" isTruncated>
+                    {!chat.isGroupChat
+                      ? getSender(loggeduser, chat.users)
+                      : chat.chatName}
+                  </Text>
+                  {unreadCount > 0 && (
+                    <Badge
+                      ml={2}
+                      bg="red.500"
+                      color="white"
+                      borderRadius="full"
+                      px={2}
+                      py={0.5}
+                      fontSize="0.75em"
+                      minW="20px"
+                      textAlign="center"
+                    >
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </Badge>
+                  )}
+                </Box>
+              );
+            })}
           </Stack>
         ) : (
           <ChatLoading />
